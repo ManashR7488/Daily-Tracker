@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>FinTrack — Food Tracker</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#070c17">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { fontFamily: { display: ['Syne','sans-serif'], body: ['"DM Sans"','sans-serif'] } } }
+    }
+  </script>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    a { text-decoration: none; }
+    .history-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 0;
+      border-bottom: 1px solid var(--border-soft);
+    }
+    .history-item:last-child { border-bottom: none; }
+    .history-date { font-size: 13px; font-weight: 600; color: var(--text); }
+    .history-meals { display: flex; gap: 8px; }
+    .btn-save {
+      width: 100%;
+      padding: 16px;
+      background: var(--teal);
+      color: #0d1526;
+      border: none;
+      border-radius: 14px;
+      font-family: 'Syne', sans-serif;
+      font-size: 16px;
+      font-weight: 700;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+    }
+  </style>
+</head>
+<body class="font-body page-wrap">
+
+  <!-- ── Header ─────────────────────────────────── -->
+  <header style="padding:52px 20px 4px;display:flex;align-items:center;gap:12px">
+    <a href="index.html"
+       style="width:36px;height:36px;border-radius:11px;border:1px solid var(--border);
+              background:var(--bg-raised);display:flex;align-items:center;justify-content:center;
+              flex-shrink:0">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-sub)"
+           stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+    </a>
+    <div>
+      <h1 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin:0;
+                 letter-spacing:-0.01em">Food Tracker</h1>
+      <p style="font-size:12px;color:var(--text-mute);margin:0">Log your daily meals</p>
+    </div>
+  </header>
+
+  <main style="padding:20px;">
+    
+    <div style="margin-bottom: 24px;" class="a0">
+      <label class="form-label" for="date">Selected Date</label>
+      <input id="date" class="form-input" type="date">
+    </div>
+
+    <div style="display:flex;flex-direction:column;gap:12px">
+
+      <!-- ── Breakfast ─────────────────────────────── -->
+      <div id="card-breakfast" class="meal-card a1">
+        <div style="display:flex;align-items:center;gap:14px">
+          <div style="font-size:26px">🌅</div>
+          <div>
+            <p style="font-size:14px;font-weight:700;margin:0">Breakfast</p>
+            <p style="font-size:11px;color:var(--text-mute);margin:0">Morning fuel</p>
+          </div>
+        </div>
+        <div class="counter-group">
+          <button class="counter-btn minus" onclick="step('breakfast', -1)">−</button>
+          <div id="val-breakfast" class="counter-value">0</div>
+          <button class="counter-btn plus" onclick="step('breakfast', 1)">+</button>
+        </div>
+      </div>
+
+      <!-- ── Lunch ─────────────────────────────────── -->
+      <div id="card-lunch" class="meal-card a2">
+        <div style="display:flex;align-items:center;gap:14px">
+          <div style="font-size:26px">☀️</div>
+          <div>
+            <p style="font-size:14px;font-weight:700;margin:0">Lunch</p>
+            <p style="font-size:11px;color:var(--text-mute);margin:0">Midday meal</p>
+          </div>
+        </div>
+        <div class="counter-group">
+          <button class="counter-btn minus" onclick="step('lunch', -1)">−</button>
+          <div id="val-lunch" class="counter-value">0</div>
+          <button class="counter-btn plus" onclick="step('lunch', 1)">+</button>
+        </div>
+      </div>
+
+      <!-- ── Dinner ────────────────────────────────── -->
+      <div id="card-dinner" class="meal-card a3">
+        <div style="display:flex;align-items:center;gap:14px">
+          <div style="font-size:26px">🌙</div>
+          <div>
+            <p style="font-size:14px;font-weight:700;margin:0">Dinner</p>
+            <p style="font-size:11px;color:var(--text-mute);margin:0">Evening meal</p>
+          </div>
+        </div>
+        <div class="counter-group">
+          <button class="counter-btn minus" onclick="step('dinner', -1)">−</button>
+          <div id="val-dinner" class="counter-value">0</div>
+          <button class="counter-btn plus" onclick="step('dinner', 1)">+</button>
+        </div>
+      </div>
+
+      <!-- ── Submit ────────────────────────────────── -->
+      <button class="btn-save a4" onclick="save()">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" 
+             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="20 6 9 17 4 12"/>
+        </svg>
+        Save Logs
+      </button>
+
+    </div>
+
+    <!-- ── Weekly History ────────────────────────── -->
+    <div style="margin-top:32px" class="a5">
+      <p class="section-title">Weekly Overview</p>
+      <div id="history-list" style="display:grid;grid-template-columns:repeat(7, 1fr);gap:6px">
+        <!-- Day columns injected here -->
+      </div>
+    </div>
+
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <!-- ── Bottom Nav ─────────────────────────────── -->
+  <nav class="bottom-nav">
+    <div style="display:flex;align-items:center;justify-content:space-around;height:64px;padding:0 8px">
+      <a href="index.html" class="nav-item" data-nav="index">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        <span>Home</span>
+      </a>
+      <a href="income.html" class="nav-item" data-nav="income">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
+          <line x1="4" y1="20" x2="20" y2="20"/>
+        </svg>
+        <span>Income</span>
+      </a>
+      <a href="expenses.html" class="nav-item" data-nav="expenses">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>
+          <line x1="4" y1="4" x2="20" y2="4"/>
+        </svg>
+        <span>Expense</span>
+      </a>
+      <a href="food.html" class="nav-item" data-nav="food">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8h1a4 4 0 010 8h-1"/>
+          <path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/>
+          <line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/>
+          <line x1="14" y1="1" x2="14" y2="4"/>
+        </svg>
+        <span>Food</span>
+      </a>
+      <a href="history.html" class="nav-item" data-nav="history">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+        <span>History</span>
+      </a>
+    </div>
+  </nav>
+
+  <script src="app.js"></script>
+  <script>
+    let currentLog = { breakfast: 0, lunch: 0, dinner: 0 };
+
+    document.addEventListener('DOMContentLoaded', () => {
+      const dateEl = document.getElementById('date');
+      dateEl.value = today();
+      
+      loadData();
+      
+      dateEl.addEventListener('change', loadData);
+    });
+
+    function loadData(dateStr) {
+      const date = dateStr || document.getElementById('date').value;
+      if (dateStr) document.getElementById('date').value = dateStr;
+      
+      currentLog = DB.getFood(date);
+      refreshUI();
+      renderHistory();
+    }
+
+    function refreshUI() {
+      ['breakfast', 'lunch', 'dinner'].forEach(k => {
+        const el = document.getElementById(`val-${k}`);
+        const card = document.getElementById(`card-${k}`);
+        const val = currentLog[k];
+        
+        if (el.textContent != val) {
+          el.classList.remove('bump');
+          void el.offsetWidth; // trigger reflow
+          el.classList.add('bump');
+        }
+        
+        el.textContent = val;
+        el.style.color = val > 0 ? 'var(--amber)' : 'var(--text-mute)';
+        card.classList.toggle('has-count', val > 0);
+      });
+    }
+
+    function step(meal, delta) {
+      currentLog[meal] = Math.max(0, currentLog[meal] + delta);
+      refreshUI();
+    }
+
+    function save() {
+      const date = document.getElementById('date').value;
+      DB.saveFood(date, currentLog);
+      toast('🍲 Food logs updated!', 'ok');
+      renderHistory();
+    }
+
+    function renderHistory() {
+      const history = DB.getFoodHistory(7);
+      const container = document.getElementById('history-list');
+      const t = today();
+      const currentSelected = document.getElementById('date').value;
+      
+      container.innerHTML = history.map(h => {
+        const isToday = h.date === t;
+        const isSelected = h.date === currentSelected;
+        const dayName = fmtDay(h.date);
+        return `
+          <div class="day-col ${isToday ? 'today' : ''}" 
+               style="cursor:pointer; border-color:${isSelected ? 'var(--amber)' : ''}"
+               onclick="loadData('${h.date}')">
+            <p style="font-size:10px;font-weight:700;color:${isSelected ? 'var(--amber)' : 'var(--text-mute)'};margin:0 0 6px">
+              ${dayName}
+            </p>
+            <div class="meal-dot" style="background:${h.breakfast > 0 ? 'var(--amber)' : 'var(--border)'}"></div>
+            <div class="meal-dot" style="background:${h.lunch > 0 ? 'var(--amber)' : 'var(--border)'}"></div>
+            <div class="meal-dot" style="background:${h.dinner > 0 ? 'var(--amber)' : 'var(--border)'}"></div>
+          </div>
+        `;
+      }).join('');
+    }
+  </script>
+</body>
+</html>

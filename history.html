@@ -1,0 +1,207 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>FinTrack — Transaction History</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#070c17">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { fontFamily: { display: ['Syne','sans-serif'], body: ['"DM Sans"','sans-serif'] } } }
+    }
+  </script>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    a { text-decoration: none; }
+    .date-heading {
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--text-mute);
+      text-transform: uppercase;
+      letter-spacing: 0.1em;
+      margin: 24px 0 12px 4px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .date-heading::after {
+      content: '';
+      flex: 1;
+      height: 1px;
+      background: var(--border-soft);
+    }
+    .empty-state {
+      padding: 60px 20px;
+      text-align: center;
+      color: var(--text-mute);
+    }
+    .search-wrap {
+      position: sticky;
+      top: 0;
+      z-index: 10;
+      background: var(--bg);
+      padding: 10px 0;
+      margin: -10px 0 10px;
+    }
+  </style>
+</head>
+<body class="font-body page-wrap">
+
+  <!-- ── Header ─────────────────────────────────── -->
+  <header style="padding:52px 20px 4px;display:flex;align-items:center;justify-content:space-between">
+    <div style="display:flex;align-items:center;gap:12px" class="a0">
+      <a href="index.html"
+         style="width:36px;height:36px;border-radius:11px;border:1px solid var(--border);
+                background:var(--bg-raised);display:flex;align-items:center;justify-content:center;
+                flex-shrink:0">
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-sub)"
+             stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"/>
+        </svg>
+      </a>
+      <div>
+        <h1 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin:0;
+                   letter-spacing:-0.01em">History</h1>
+        <p style="font-size:12px;color:var(--text-mute);margin:0">Full transaction log</p>
+      </div>
+    </div>
+    <button onclick="clearHistory()" class="a0"
+            style="font-size:11px;color:var(--rose);background:var(--rose-dim);
+                   border:1px solid rgba(251,113,133,0.2);padding:6px 10px;border-radius:8px;
+                   font-weight:600">
+      Clear All
+    </button>
+  </header>
+
+  <main style="padding:20px;">
+    
+    <!-- ── Search/Filter ────────────────────────── -->
+    <div class="search-wrap a1">
+      <input id="search" type="text" class="form-input" 
+             placeholder="Search category or note..." autocomplete="off"
+             oninput="renderHistory()">
+    </div>
+
+    <div id="history-container" class="a2">
+      <!-- Transactions grouped by date will be injected here -->
+    </div>
+
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <!-- ── Bottom Nav ─────────────────────────────── -->
+  <nav class="bottom-nav">
+    <div style="display:flex;align-items:center;justify-content:space-around;height:64px;padding:0 8px">
+      <a href="index.html" class="nav-item" data-nav="index">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        <span>Home</span>
+      </a>
+      <a href="income.html" class="nav-item" data-nav="income">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
+          <line x1="4" y1="20" x2="20" y2="20"/>
+        </svg>
+        <span>Income</span>
+      </a>
+      <a href="expenses.html" class="nav-item" data-nav="expenses">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>
+          <line x1="4" y1="4" x2="20" y2="4"/>
+        </svg>
+        <span>Expense</span>
+      </a>
+      <a href="food.html" class="nav-item" data-nav="food">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8h1a4 4 0 010 8h-1"/>
+          <path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/>
+          <line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/>
+          <line x1="14" y1="1" x2="14" y2="4"/>
+        </svg>
+        <span>Food</span>
+      </a>
+      <a href="history.html" class="nav-item" data-nav="history">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+        <span>History</span>
+      </a>
+    </div>
+  </nav>
+
+  <script src="app.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      renderHistory();
+    });
+
+    function renderHistory() {
+      const query = document.getElementById('search').value.toLowerCase().trim();
+      let txns    = DB.getAll();
+
+      if (query) {
+        txns = txns.filter(t => 
+          t.category.toLowerCase().includes(query) || 
+          (t.note && t.note.toLowerCase().includes(query))
+        );
+      }
+
+      const container = document.getElementById('history-container');
+      
+      if (txns.length === 0) {
+        container.innerHTML = `
+          <div class="empty-state">
+            <div style="font-size:48px;margin-bottom:16px">🔍</div>
+            <p style="font-size:14px;margin:0">No transactions found.</p>
+          </div>`;
+        return;
+      }
+
+      // Group by date
+      const groups = {};
+      txns.forEach(t => {
+        if (!groups[t.date]) groups[t.date] = [];
+        groups[t.date].push(t);
+      });
+
+      const sortedDates = Object.keys(groups).sort((a, b) => b.localeCompare(a));
+
+      container.innerHTML = sortedDates.map(date => `
+        <div class="date-heading">${fmtDate(date)}</div>
+        <div class="card" style="display:flex;flex-direction:column;gap:4px">
+          ${groups[date].map(t => txHTML(t, { deletable: true })).join('')}
+        </div>
+      `).join('');
+    }
+
+    function deleteTx(id) {
+      if (!confirm('Delete this transaction?')) return;
+      DB.remove(id);
+      renderHistory();
+      toast('Transaction deleted', 'info');
+    }
+
+    function clearHistory() {
+      if (!confirm('Are you absolutely sure? This will delete ALL transactions forever.')) return;
+      DB.clearAll();
+      renderHistory();
+      toast('History cleared', 'info');
+    }
+  </script>
+</body>
+</html>

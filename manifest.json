@@ -1,0 +1,53 @@
+{
+  "name": "FinTrack — Finance & Habit Tracker",
+  "short_name": "FinTrack",
+  "description": "Personal finance tracker and daily meal habit logger",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui"],
+  "background_color": "#070c17",
+  "theme_color": "#070c17",
+  "orientation": "portrait-primary",
+  "categories": ["finance", "productivity", "lifestyle"],
+  "lang": "en-IN",
+  "icons": [
+    {
+      "src": "icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Log Expense",
+      "short_name": "Expense",
+      "description": "Quickly log a new expense",
+      "url": "./expenses.html",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Add Income",
+      "short_name": "Income",
+      "description": "Record new income",
+      "url": "./income.html",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    },
+    {
+      "name": "Food Log",
+      "short_name": "Food",
+      "description": "Track today's meals",
+      "url": "./food.html",
+      "icons": [{ "src": "icon-192.png", "sizes": "192x192" }]
+    }
+  ],
+  "screenshots": [],
+  "prefer_related_applications": false
+}

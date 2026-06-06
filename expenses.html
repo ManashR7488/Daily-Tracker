@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>FinTrack — Log Expense</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#070c17">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { fontFamily: { display: ['Syne','sans-serif'], body: ['"DM Sans"','sans-serif'] } } }
+    }
+  </script>
+  <link rel="stylesheet" href="styles.css">
+  <style>a { text-decoration: none; }</style>
+</head>
+<body class="font-body page-wrap">
+
+  <!-- ── Header ─────────────────────────────────── -->
+  <header style="padding:52px 20px 4px;display:flex;align-items:center;gap:12px">
+    <a href="index.html"
+       style="width:36px;height:36px;border-radius:11px;border:1px solid var(--border);
+              background:var(--bg-raised);display:flex;align-items:center;justify-content:center;
+              flex-shrink:0">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--text-sub)"
+           stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+        <polyline points="15 18 9 12 15 6"/>
+      </svg>
+    </a>
+    <div>
+      <h1 style="font-family:'Syne',sans-serif;font-size:20px;font-weight:800;margin:0;
+                 letter-spacing:-0.01em">Log Expense</h1>
+      <p style="font-size:12px;color:var(--text-mute);margin:0">Track where your money goes</p>
+    </div>
+  </header>
+
+  <main style="padding:20px;">
+    <div style="display:flex;flex-direction:column;gap:20px">
+
+      <!-- ── Amount ────────────────────────────────── -->
+      <div class="card a0" style="text-align:center;padding:1.75rem 1.25rem">
+        <p class="form-label" style="text-align:center;margin-bottom:16px">Amount</p>
+        <div class="amount-wrap">
+          <span class="amount-prefix">₹</span>
+          <input id="amount" class="amount-input" type="number" min="0" step="0.01"
+                 placeholder="0" inputmode="decimal" autocomplete="off">
+        </div>
+        <p id="amount-err" style="font-size:11px;color:var(--rose);margin:8px 0 0;
+                                   display:none">Please enter a valid amount.</p>
+      </div>
+
+      <!-- ── Category ──────────────────────────────── -->
+      <div class="a1">
+        <label class="form-label">Category</label>
+        <div class="chip-group" id="cat-group">
+          <button class="chip expense" data-cat="Room Rent">🏠 Room Rent</button>
+          <button class="chip expense" data-cat="Water Bill">💧 Water Bill</button>
+          <button class="chip expense" data-cat="Wi-Fi">📡 Wi-Fi</button>
+          <button class="chip expense" data-cat="Transport">🚇 Transport</button>
+          <button class="chip expense" data-cat="Food / Dining">🍜 Food / Dining</button>
+          <button class="chip expense" data-cat="Shopping">🛍️ Shopping</button>
+          <button class="chip expense" data-cat="Medicine">💊 Medicine</button>
+          <button class="chip expense" data-cat="Entertainment">🎬 Entertainment</button>
+          <button class="chip expense" data-cat="Other">📦 Other</button>
+        </div>
+        <p id="cat-err" style="font-size:11px;color:var(--rose);margin:8px 0 0;
+                                display:none">Please pick a category.</p>
+      </div>
+
+      <!-- ── Note ──────────────────────────────────── -->
+      <div class="a2">
+        <label class="form-label" for="note">
+          Note <span style="color:var(--text-mute)">(optional)</span>
+        </label>
+        <input id="note" class="form-input" type="text"
+               placeholder="e.g. Monthly Wi-Fi bill…" maxlength="100" autocomplete="off">
+      </div>
+
+      <!-- ── Date ──────────────────────────────────── -->
+      <div class="a3">
+        <label class="form-label" for="date">Date</label>
+        <input id="date" class="form-input" type="date">
+      </div>
+
+      <!-- ── Submit ────────────────────────────────── -->
+      <button class="btn-primary a4" id="submit-btn"
+              style="background:var(--rose);color:#fff"
+              onclick="submitExpense()">
+        − Log Expense
+      </button>
+
+    </div>
+
+    <!-- ── Monthly Breakdown ─────────────────────── -->
+    <div style="margin-top:28px" class="a5">
+      <p class="section-title">This Month's Expenses</p>
+      <div id="monthly-summary" style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-bottom:16px"></div>
+      <p class="section-title">Recent Expenses</p>
+      <div class="card" id="recent-expenses">
+        <p style="text-align:center;padding:16px 0;font-size:13px;color:var(--text-mute)">
+          No expenses logged yet.</p>
+      </div>
+    </div>
+
+  </main>
+
+  <div id="toast" class="toast"></div>
+
+  <!-- ── Bottom Nav ─────────────────────────────── -->
+  <nav class="bottom-nav">
+    <div style="display:flex;align-items:center;justify-content:space-around;height:64px;padding:0 8px">
+      <a href="index.html" class="nav-item" data-nav="index">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        <span>Home</span>
+      </a>
+      <a href="income.html" class="nav-item" data-nav="income">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/>
+          <line x1="4" y1="20" x2="20" y2="20"/>
+        </svg>
+        <span>Income</span>
+      </a>
+      <a href="expenses.html" class="nav-item" data-nav="expenses">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/>
+          <line x1="4" y1="4" x2="20" y2="4"/>
+        </svg>
+        <span>Expense</span>
+      </a>
+      <a href="food.html" class="nav-item" data-nav="food">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M18 8h1a4 4 0 010 8h-1"/>
+          <path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/>
+          <line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/>
+          <line x1="14" y1="1" x2="14" y2="4"/>
+        </svg>
+        <span>Food</span>
+      </a>
+      <a href="history.html" class="nav-item" data-nav="history">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+        </svg>
+        <span>History</span>
+      </a>
+    </div>
+  </nav>
+
+  <script src="app.js"></script>
+  <script>
+  let selectedCat = '';
+
+  document.addEventListener('DOMContentLoaded', () => {
+    document.getElementById('date').value = today();
+    bindChips();
+    renderData();
+  });
+
+  function bindChips() {
+    document.querySelectorAll('#cat-group .chip').forEach(chip => {
+      chip.addEventListener('click', () => {
+        selectedCat = chip.dataset.cat;
+        document.querySelectorAll('#cat-group .chip').forEach(c => c.classList.remove('selected'));
+        chip.classList.add('selected');
+        document.getElementById('cat-err').style.display = 'none';
+      });
+    });
+  }
+
+  function submitExpense() {
+    const amount = parseFloat(document.getElementById('amount').value);
+    const note   = document.getElementById('note').value.trim();
+    const date   = document.getElementById('date').value;
+    let valid    = true;
+
+    if (!amount || amount <= 0) {
+      document.getElementById('amount-err').style.display = 'block'; valid = false;
+    } else {
+      document.getElementById('amount-err').style.display = 'none';
+    }
+    if (!selectedCat) {
+      document.getElementById('cat-err').style.display = 'block'; valid = false;
+    } else {
+      document.getElementById('cat-err').style.display = 'none';
+    }
+    if (!valid) return;
+
+    DB.add({ type:'expense', category: selectedCat, amount, note, date });
+    toast('💸 Expense logged — ' + rupees(amount), 'err');
+
+    document.getElementById('amount').value = '';
+    document.getElementById('note').value   = '';
+    document.getElementById('date').value   = today();
+    document.querySelectorAll('#cat-group .chip').forEach(c => c.classList.remove('selected'));
+    selectedCat = '';
+    renderData();
+  }
+
+  function renderData() {
+    renderMonthlySummary();
+    renderRecentExpenses();
+  }
+
+  function renderMonthlySummary() {
+    const now   = new Date();
+    const ym    = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+    const items = DB.getAll().filter(t => t.type === 'expense' && t.date.startsWith(ym));
+    const totals = {};
+    items.forEach(t => { totals[t.category] = (totals[t.category]||0) + t.amount; });
+
+    const sorted = Object.entries(totals).sort((a,b) => b[1]-a[1]).slice(0, 6);
+    const el     = document.getElementById('monthly-summary');
+    if (sorted.length === 0) {
+      el.innerHTML = '';
+      return;
+    }
+    el.innerHTML = sorted.map(([cat, amt]) => `
+      <div class="card-raised" style="padding:12px 14px">
+        <p style="font-size:16px;margin:0 0 4px">${icon(cat)}</p>
+        <p style="font-size:11px;color:var(--text-sub);margin:0 0 3px;
+                  white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${escHtml(cat)}</p>
+        <p style="font-family:'Syne',sans-serif;font-size:15px;font-weight:700;
+                  color:var(--rose);margin:0">${rupees(amt)}</p>
+      </div>
+    `).join('');
+  }
+
+  function renderRecentExpenses() {
+    const items = DB.getAll().filter(t => t.type === 'expense').slice(0, 6);
+    const el    = document.getElementById('recent-expenses');
+    if (items.length === 0) {
+      el.innerHTML = `<p style="text-align:center;padding:16px 0;font-size:13px;
+                       color:var(--text-mute)">No expenses logged yet.</p>`;
+      return;
+    }
+    el.innerHTML = items.map(tx => txHTML(tx, { deletable: true })).join('');
+  }
+
+  function deleteTx(id) {
+    DB.remove(id);
+    renderData();
+    toast('Deleted', 'info');
+  }
+  </script>
+</body>
+</html>
