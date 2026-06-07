@@ -1,0 +1,293 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+  <title>FinTrack — Settings</title>
+  <link rel="manifest" href="manifest.json">
+  <meta name="theme-color" content="#070c17">
+  <link rel="icon" type="image/png" href="icon-192.png">
+  <link rel="apple-touch-icon" href="icon-192.png">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="FinTrack">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,600&display=swap" rel="stylesheet">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script>
+    tailwind.config = {
+      theme: { extend: { fontFamily: { display: ['Syne','sans-serif'], body: ['"DM Sans"','sans-serif'] } } }
+    }
+  </script>
+  <link rel="stylesheet" href="styles.css">
+  <style>
+    /* Nested settings slider animation */
+    .view-container {
+      position: relative;
+      width: 100%;
+      height: calc(100vh - 120px);
+      overflow-x: hidden;
+    }
+    .view {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      transition: transform 0.3s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+      background: var(--bg);
+    }
+    .view.hidden-right {
+      transform: translateX(100%);
+    }
+    .view.hidden-left {
+      transform: translateX(-30%);
+      opacity: 0;
+      pointer-events: none;
+    }
+    .view.active {
+      transform: translateX(0);
+      opacity: 1;
+      pointer-events: auto;
+    }
+
+    .setting-item {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 16px 20px;
+      color: var(--text);
+      cursor: pointer;
+      transition: background 0.2s;
+    }
+    .setting-item:active {
+      background: var(--bg-raised);
+    }
+    .setting-group {
+      background: var(--bg-raised);
+      border-radius: 14px;
+      margin: 16px 20px;
+      overflow: hidden;
+      border: 1px solid var(--border);
+    }
+    .setting-item:not(:last-child) {
+      border-bottom: 1px solid var(--border-soft);
+    }
+    .setting-icon-text {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    .icon-box {
+      width: 32px;
+      height: 32px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+    }
+
+    /* Back button style */
+    .back-nav {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      color: var(--teal);
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      margin: 12px 20px 8px;
+    }
+  </style>
+</head>
+<body class="font-body page-wrap">
+
+  <header style="padding: 52px 20px 8px;">
+    <h1 id="header-title" style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin:0;letter-spacing:-0.01em">Settings</h1>
+  </header>
+
+  <main class="view-container">
+
+    <!-- ── Main Settings View ────────────────────── -->
+    <div id="view-main" class="view active">
+      <div class="setting-group">
+        <div class="setting-item" onclick="openView('view-data')">
+          <div class="setting-icon-text">
+            <div class="icon-box" style="background: var(--green-dim); color: var(--green)">💾</div>
+            <span style="font-weight: 500;">Data</span>
+          </div>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-mute)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </div>
+        <div class="setting-item" onclick="openSecurity()">
+          <div class="setting-icon-text">
+            <div class="icon-box" style="background: var(--amber-dim); color: var(--amber)">🔒</div>
+            <span style="font-weight: 500;">Security</span>
+          </div>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-mute)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </div>
+        <div class="setting-item" onclick="toast('Not implemented yet', 'neutral')">
+          <div class="setting-icon-text">
+            <div class="icon-box" style="background: rgba(255, 255, 255, 0.1); color: #fff;">ℹ️</div>
+            <span style="font-weight: 500;">About</span>
+          </div>
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="var(--text-mute)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <polyline points="9 18 15 12 9 6"></polyline>
+          </svg>
+        </div>
+      </div>
+    </div>
+
+    <!-- ── Data Settings View ────────────────────── -->
+    <div id="view-data" class="view hidden-right">
+      <div class="back-nav" onclick="closeView('view-data')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+        Settings
+      </div>
+      
+      <p style="padding: 0 20px; font-size: 13px; color: var(--text-mute); margin-bottom: 4px;">Manage your local app data</p>
+
+      <div class="setting-group">
+        <div class="setting-item" id="btn-export">
+          <div class="setting-icon-text">
+            <div class="icon-box" style="background: var(--amber-dim); color: var(--amber)">📤</div>
+            <span style="font-weight: 500;">Export Data</span>
+          </div>
+          <span style="font-size: 12px; color: var(--text-mute)">Backup to JSON</span>
+        </div>
+        <div class="setting-item" id="btn-import">
+          <div class="setting-icon-text">
+            <div class="icon-box" style="background: var(--teal-dim); color: var(--teal)">📥</div>
+            <span style="font-weight: 500;">Import Data</span>
+          </div>
+          <span style="font-size: 12px; color: var(--text-mute)">Restore JSON</span>
+        </div>
+      </div>
+
+       <!-- Hidden file input for file selection -->
+      <input type="file" id="file-import" accept=".json" style="display: none;">
+
+      <div class="setting-group" style="border-color: rgba(244,63,94,0.3); margin-top: 24px;">
+        <div class="setting-item" id="btn-clear-data">
+          <div class="setting-icon-text">
+            <div class="icon-box" style="background: var(--rose-dim); color: var(--rose)">🗑️</div>
+            <span style="font-weight: 500; color: var(--rose)">Clear All Data</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Clear Data Auth Modal -->
+      <div id="clear-auth-modal" style="display:none; position:absolute; top:0; left:0; width:100%; height:100%; background:var(--bg); z-index:50; padding:20px;">
+        <div class="back-nav" onclick="document.getElementById('clear-auth-modal').style.display='none'" style="margin: 0 0 20px -8px;">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><polyline points="15 18 9 12 15 6"></polyline></svg> Back
+        </div>
+        <h2 style="font-family:'Syne';font-size:20px;margin-bottom:12px;color:var(--rose)">Wipe Data</h2>
+        <p style="font-size:13px;color:var(--text-sub);margin-bottom:16px;">This action cannot be undone. Enter your master password to confirm.</p>
+        <input type="password" id="clear-auth-input" placeholder="Master Password" style="width:100%; border:1px solid var(--border); background:var(--bg-raised); color:var(--text); padding:12px 14px; border-radius:10px; margin-bottom:16px; outline:none;">
+        <button style="width:100%; background:var(--rose); color:#fff; padding:12px; border-radius:10px; font-weight:600; cursor:pointer; border:none;" onclick="confirmClearData()">Permanently Delete</button>
+      </div>
+
+    </div>
+
+    <!-- ── Security Settings View ────────────────── -->
+    <div id="view-security" class="view hidden-right">
+      <div class="back-nav" onclick="closeView('view-security')">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <polyline points="15 18 9 12 15 6"></polyline>
+        </svg>
+        Settings
+      </div>
+
+      <!-- State: Auth -->
+      <div id="sec-auth-state" style="display:none; padding: 20px;">
+        <h2 style="font-family:'Syne';font-size:20px;margin-bottom:12px;">Enter Password</h2>
+        <p style="font-size:13px;color:var(--text-sub);margin-bottom:16px;">This section is protected.</p>
+        <input type="password" id="sec-auth-input" placeholder="Master Password" style="width:100%; border:1px solid var(--border); background:var(--bg-raised); color:var(--text); padding:12px 14px; border-radius:10px; margin-bottom:16px; outline:none;">
+        <button style="width:100%; background:var(--teal); color:#fff; padding:12px; border-radius:10px; font-weight:600; cursor:pointer; border:none;" onclick="authenticateSecurity()">Unlock</button>
+      </div>
+
+      <!-- State: Setup -->
+      <div id="sec-setup-state" style="display:none; padding: 20px;">
+        <h2 style="font-family:'Syne';font-size:20px;margin-bottom:4px;">Set Master Password</h2>
+        <p style="font-size:13px;color:var(--text-sub);margin-bottom:20px;">Use a password to protect sensitive actions in your app.</p>
+        <input type="password" id="sec-setup-input1" placeholder="New Password" style="width:100%; border:1px solid var(--border); background:var(--bg-raised); color:var(--text); padding:12px 14px; border-radius:10px; margin-bottom:12px; outline:none;">
+        <input type="password" id="sec-setup-input2" placeholder="Confirm Password" style="width:100%; border:1px solid var(--border); background:var(--bg-raised); color:var(--text); padding:12px 14px; border-radius:10px; margin-bottom:16px; outline:none;">
+        <button style="width:100%; background:var(--teal); color:#fff; padding:12px; border-radius:10px; font-weight:600; cursor:pointer; border:none;" onclick="setupSecurity()">Save Password</button>
+      </div>
+
+      <!-- State: Manage -->
+      <div id="sec-manage-state" style="display:none;">
+        <p style="padding: 0 20px; font-size: 13px; color: var(--text-mute); margin-bottom: 4px;">Security Options</p>
+        <div class="setting-group">
+          <div class="setting-item" onclick="changePasswordFlow()">
+            <div class="setting-icon-text">
+              <div class="icon-box" style="background: var(--amber-dim); color: var(--amber)">🔑</div>
+              <span style="font-weight: 500;">Change Password</span>
+            </div>
+          </div>
+          <div class="setting-item" onclick="removePassword()">
+            <div class="setting-icon-text">
+              <div class="icon-box" style="background: var(--rose-dim); color: var(--rose)">🗑️</div>
+              <span style="font-weight: 500;">Remove Password</span>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+  </main>
+
+  <!-- ── Toast ────────────────────────────────────── -->
+  <div id="toast" class="toast"></div>
+
+  <!-- ══════════════════════════════════════════════
+       BOTTOM NAVIGATION
+  ══════════════════════════════════════════════════ -->
+  <nav class="bottom-nav">
+    <div style="display:flex;align-items:center;justify-content:space-around;height:64px;padding:0 8px">
+
+      <a href="index.html" class="nav-item">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/>
+          <polyline points="9 22 9 12 15 12 15 22"/>
+        </svg>
+        <span>Home</span>
+      </a>
+
+      <!-- For settings, we keep the other links to allow user to easily jump back -->
+      <a href="income.html" class="nav-item">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="19" x2="12" y2="5"/><polyline points="5 12 12 5 19 12"/><line x1="4" y1="20" x2="20" y2="20"/></svg>
+        <span>Income</span>
+      </a>
+      <a href="expenses.html" class="nav-item">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><polyline points="19 12 12 19 5 12"/><line x1="4" y1="4" x2="20" y2="4"/></svg>
+        <span>Expense</span>
+      </a>
+      <a href="food.html" class="nav-item">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M18 8h1a4 4 0 010 8h-1"/><path d="M2 8h16v9a4 4 0 01-4 4H6a4 4 0 01-4-4V8z"/><line x1="6" y1="1" x2="6" y2="4"/><line x1="10" y1="1" x2="10" y2="4"/><line x1="14" y1="1" x2="14" y2="4"/></svg>
+        <span>Food</span>
+      </a>
+
+      <a href="setting.html" class="nav-item active" data-nav="setting">
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+        <span>Settings</span>
+      </a>
+
+    </div>
+  </nav>
+
+  <script src="app.js"></script>
+  <script src="setting.js"></script>
+</body>
+</html>

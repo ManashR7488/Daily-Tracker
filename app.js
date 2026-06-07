@@ -113,6 +113,68 @@ const DB = {
     }
     return total;
   },
+
+  // ── Import / Export ──────────────────────────
+  exportData() {
+    const data = {
+      transactions: this.getAll(),
+      food: {}
+    };
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key.startsWith('fintrack_v1_food_')) {
+        try {
+          data.food[key] = JSON.parse(localStorage.getItem(key));
+        } catch (e) {}
+      }
+    }
+    return JSON.stringify(data, null, 2);
+  },
+
+  importData(jsonData) {
+    try {
+      const data = typeof jsonData === 'string' ? JSON.parse(jsonData) : jsonData;
+      if (data.transactions && Array.isArray(data.transactions)) {
+        this._save(data.transactions);
+      }
+      if (data.food && typeof data.food === 'object') {
+        for (const [key, value] of Object.entries(data.food)) {
+          if (key.startsWith('fintrack_v1_food_')) {
+            localStorage.setItem(key, JSON.stringify(value));
+          }
+        }
+      }
+      return true;
+    } catch (e) {
+      console.error('Import failed', e);
+      return false;
+    }
+  },
+
+  // ── Security ─────────────────────────────────
+  hasPwd() {
+    return !!localStorage.getItem('fintrack_v1_pwd');
+  },
+  checkPwd(pwd) {
+    // Basic encoding to avoid plain-text in localStorage
+    return localStorage.getItem('fintrack_v1_pwd') === btoa(pwd);
+  },
+  setPwd(pwd) {
+    localStorage.setItem('fintrack_v1_pwd', btoa(pwd));
+  },
+  removePwd() {
+    localStorage.removeItem('fintrack_v1_pwd');
+  },
+  wipeAllData() {
+    const keys = [];
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i);
+      if (k && k.startsWith('fintrack_v1_')) {
+        keys.push(k);
+      }
+    }
+    keys.forEach(k => localStorage.removeItem(k));
+  }
 };
 
 /* ══════════════════════════════════════════════════════
@@ -259,6 +321,17 @@ function escHtml(str) {
 ══════════════════════════════════════════════════════ */
 if ('serviceWorker' in navigator) {
   window.addEventListener('load', () => {
+    // If we're on localhost, don't use the service worker to avoid caching issues during development
+    if (location.hostname === 'localhost' || location.hostname === '127.0.0.1') {
+      navigator.serviceWorker.getRegistrations().then(registrations => {
+        for (let registration of registrations) {
+          registration.unregister();
+        }
+      });
+      console.log('[SW] Unregistered for development');
+      return;
+    }
+
     navigator.serviceWorker.register('service-worker.js')
       .then(r  => console.log('[SW] Registered:', r.scope))
       .catch(e => console.warn('[SW] Registration failed:', e));

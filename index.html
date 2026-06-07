@@ -29,8 +29,28 @@
 <body class="font-body page-wrap">
 
   <!-- ── Top Header ──────────────────────────────── -->
-  <header style="padding: 52px 20px 8px;">
-    <p id="greet" style="font-size:13px;color:var(--text-sub);margin:0 0 2px">Good morning 👋</p>
+  <header style="padding: 52px 20px 8px; position: relative;">
+    <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:2px">
+      <p id="greet" style="font-size:13px;color:var(--text-sub);margin:0">Good morning 👋</p>
+      
+      <!-- Profile Button -->
+      <div id="profile-btn" style="width:34px;height:34px;border-radius:50%;background:var(--bg-raised);
+                  border:1px solid var(--border);display:flex;align-items:center;
+                  justify-content:center;font-size:18px;cursor:pointer;position:relative;">
+        👤
+        <!-- Dropdown Menu -->
+        <div id="profile-dropdown" class="card" 
+             style="display:none; position:absolute; top:40px; right:0; width:140px; 
+                    padding:8px; z-index:100; box-shadow:0 10px 25px rgba(0,0,0,0.5);
+                    border:1px solid var(--border-soft);">
+          <div style="display:flex; flex-direction:column; gap:4px;">
+            <a href="#" style="padding:8px 12px; font-size:13px; color:var(--text); border-radius:8px;">Profile</a>
+            <a href="#" style="padding:8px 12px; font-size:13px; color:var(--text); border-radius:8px;">About</a>
+            <a href="setting.html" style="padding:8px 12px; font-size:13px; color:var(--text); border-radius:8px;">Settings</a>
+          </div>
+        </div>
+      </div>
+    </div>
     <div style="display:flex;align-items:center;justify-content:space-between">
       <h1 style="font-family:'Syne',sans-serif;font-size:22px;font-weight:800;margin:0;
                  letter-spacing:-0.01em">Your Finance Hub</h1>
@@ -243,6 +263,20 @@
     } else {
       container.innerHTML = txns.map(tx => txHTML(tx)).join('');
     }
+
+    // ── Profile Dropdown Logic ─────────────────────
+    const pBtn = document.getElementById('profile-btn');
+    const pMenu = document.getElementById('profile-dropdown');
+    
+    pBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isVisible = pMenu.style.display === 'block';
+      pMenu.style.display = isVisible ? 'none' : 'block';
+    });
+
+    document.addEventListener('click', () => {
+      pMenu.style.display = 'none';
+    });
 
   });
   </script>
