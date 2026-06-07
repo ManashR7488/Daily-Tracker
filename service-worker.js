@@ -6,7 +6,7 @@
 
 'use strict';
 
-const CACHE_VERSION  = 'fintrack-v0.11';
+const CACHE_VERSION  = 'fintrack-v0.12';
 const LOCAL_ASSETS   = [
   './',
   './index.html',

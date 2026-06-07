@@ -345,6 +345,8 @@ if ('serviceWorker' in navigator) {
           btn.onclick = () => {
             worker.postMessage('SKIP_WAITING');
             banner.classList.remove('show');
+            // Force hide fallback just in case
+            setTimeout(() => { banner.style.display = 'none'; }, 500);
           };
         };
 
