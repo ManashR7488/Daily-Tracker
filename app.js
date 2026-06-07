@@ -151,7 +151,245 @@ const DB = {
     }
   },
 
-  // ── Security ─────────────────────────────────
+  // ── Goals ───────────────────────────────────
+  _goalsKey: 'fintrack_v1_goals',
+
+  getGoals() {
+    try { return JSON.parse(localStorage.getItem(this._goalsKey)) || []; }
+    catch { return []; }
+  },
+
+  saveGoals(goals) {
+    localStorage.setItem(this._goalsKey, JSON.stringify(goals));
+  },
+
+  addGoal(goal) {
+    const goals = this.getGoals();
+    goals.push({
+      id: 'goal_' + Date.now(),
+      name: goal.name || 'New Goal',
+      target: parseFloat(goal.target) || 0,
+      current: parseFloat(goal.current) || 0,
+      color: goal.color || 'var(--teal)',
+      icon: goal.icon || '🎯',
+      createdAt: new Date().toISOString()
+    });
+    this.saveGoals(goals);
+    return goals;
+  },
+
+  updateGoal(id, current) {
+    const goals = this.getGoals();
+    const g = goals.find(g => g.id === id);
+    if (g) { g.current = Math.max(0, parseFloat(current) || 0); }
+    this.saveGoals(goals);
+    return goals;
+  },
+
+  deleteGoal(id) {
+    this.saveGoals(this.getGoals().filter(g => g.id !== id));
+  },
+
+  // ── Budget ──────────────────────────────────
+  _budgetKey() {
+    return `fintrack_v1_budget_${new Date().getFullYear()}_${new Date().getMonth() + 1}`;
+  },
+
+  getBudget() {
+    try { return JSON.parse(localStorage.getItem(this._budgetKey())) || { limit: 6000 }; }
+    catch { return { limit: 6000 }; }
+  },
+
+  setBudget(limit) {
+    localStorage.setItem(this._budgetKey(), JSON.stringify({ limit: parseFloat(limit) || 6000 }));
+  },
+
+  // ── Streaks ──────────────────────────────────
+  getMealStreak() {
+    let streak = 0;
+    for (let i = 0; i < 365; i++) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const date = d.toISOString().split('T')[0];
+      const log = this.getFood(date);
+      const hasAny = (log.breakfast > 0) || (log.lunch > 0) || (log.dinner > 0);
+      if (hasAny) streak++;
+      else break;
+    }
+    return streak;
+  },
+
+  getMealConsistency(days = 30) {
+    let loggedDays = 0;
+    for (let i = 0; i < days; i++) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const date = d.toISOString().split('T')[0];
+      const log = this.getFood(date);
+      if ((log.breakfast > 0) || (log.lunch > 0) || (log.dinner > 0)) loggedDays++;
+    }
+    return Math.round((loggedDays / days) * 100);
+  },
+
+  // ── Category Breakdown ──────────────────────
+  getCategoryBreakdown() {
+    const list = this.getAll();
+    const cats = {};
+    let totalExpense = 0;
+    list.filter(t => t.type === 'expense').forEach(t => {
+      cats[t.category] = (cats[t.category] || 0) + t.amount;
+      totalExpense += t.amount;
+    });
+    const colors = {
+      'Food / Dining': 'var(--amber)',
+      'Room Rent': 'var(--violet)',
+      'Transport': 'var(--blue)',
+      'Shopping': 'var(--rose)',
+      'Entertainment': '#f472b6',
+      'Medicine': '#f87171',
+      'Wi-Fi': 'var(--teal)',
+      'Water Bill': '#38bdf8',
+      'Other': '#94a3b8'
+    };
+    return Object.entries(cats)
+      .map(([name, amount]) => ({
+        name,
+        amount,
+        pct: totalExpense > 0 ? Math.round((amount / totalExpense) * 100) : 0,
+        color: colors[name] || 'var(--teal)'
+      }))
+      .sort((a, b) => b.amount - a.amount);
+  },
+
+  // ── Weekly Spending ─────────────────────────
+  getWeeklySpending() {
+    const days = [];
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date();
+      d.setDate(d.getDate() - i);
+      const date = d.toISOString().split('T')[0];
+      const dayTotal = this.getAll()
+        .filter(t => t.date === date && t.type === 'expense')
+        .reduce((s, t) => s + t.amount, 0);
+      days.push({
+        date,
+        label: d.toLocaleDateString('en-IN', { weekday: 'short' }).slice(0, 3),
+        amount: dayTotal
+      });
+    }
+    return days;
+  },
+
+  // ── Monthly Comparison ──────────────────────
+  getMonthlyComparison() {
+    const now = new Date();
+    const thisMonth = now.getMonth();
+    const lastMonth = thisMonth === 0 ? 11 : thisMonth - 1;
+    const thisYear = now.getFullYear();
+    const lastYear = thisMonth === 0 ? thisYear - 1 : thisYear;
+
+    const list = this.getAll();
+    const thisMonthTxns = list.filter(t => {
+      const d = new Date(t.date);
+      return d.getMonth() === thisMonth && d.getFullYear() === thisYear;
+    });
+    const lastMonthTxns = list.filter(t => {
+      const d = new Date(t.date);
+      return d.getMonth() === lastMonth && d.getFullYear() === lastYear;
+    });
+
+    const thisIncome = thisMonthTxns.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+    const thisExpenses = thisMonthTxns.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+    const lastIncome = lastMonthTxns.filter(t => t.type === 'income').reduce((s, t) => s + t.amount, 0);
+    const lastExpenses = lastMonthTxns.filter(t => t.type === 'expense').reduce((s, t) => s + t.amount, 0);
+
+    const thisSavings = thisIncome - thisExpenses;
+    const lastSavings = lastIncome - lastExpenses;
+
+    return {
+      incomeChange: lastIncome > 0 ? Math.round(((thisIncome - lastIncome) / lastIncome) * 100) : 0,
+      expenseChange: lastExpenses > 0 ? Math.round(((thisExpenses - lastExpenses) / lastExpenses) * 100) : 0,
+      savingsChange: lastSavings > 0 ? Math.round(((thisSavings - lastSavings) / lastSavings) * 100) : (thisSavings > 0 ? 100 : 0),
+      savingsRate: thisIncome > 0 ? Math.round((thisSavings / thisIncome) * 100) : 0,
+      thisMonth: { income: thisIncome, expenses: thisExpenses, savings: thisSavings },
+      lastMonth: { income: lastIncome, expenses: lastExpenses, savings: lastSavings }
+    };
+  },
+
+  // ── Financial Health Score ──────────────────
+  getHealthScore() {
+    const cmpr = this.getMonthlyComparison();
+    const { savingsRate, savingsChange, expenseChange } = cmpr;
+    let score = 50;
+    // Savings rate: 0% → -20, 50%+ → +25
+    score += Math.min(savingsRate * 0.5, 25);
+    // Savings trend
+    if (savingsChange > 0) score += Math.min(savingsChange * 0.2, 15);
+    else score += Math.max(savingsChange * 0.3, -15);
+    // Expense trend (lower = better)
+    if (expenseChange < 0) score += Math.min(Math.abs(expenseChange) * 0.15, 10);
+    else score -= Math.min(expenseChange * 0.2, 10);
+    return Math.max(0, Math.min(100, Math.round(score)));
+  },
+
+  // ── Smart Insights ──────────────────────────
+  getInsights() {
+    const insights = [];
+    const breakdown = this.getCategoryBreakdown();
+    const weekly = this.getWeeklySpending();
+    const cmpr = this.getMonthlyComparison();
+    const goals = this.getGoals();
+
+    // Top spending category
+    if (breakdown.length > 0) {
+      insights.push({
+        icon: '📊',
+        bg: 'var(--amber-dim)',
+        text: `Your biggest spending this month is <b>${breakdown[0].name}</b> (${breakdown[0].pct}%).`
+      });
+    }
+
+    // Weekly trend
+    const weekTotal = weekly.reduce((s, d) => s + d.amount, 0);
+    const midWeek = weekly.slice(0, 4).reduce((s, d) => s + d.amount, 0);
+    const endWeek = weekly.slice(4).reduce((s, d) => s + d.amount, 0);
+    if (endWeek < midWeek && weekTotal > 0) {
+      insights.push({
+        icon: '📉',
+        bg: 'var(--green-dim)',
+        text: `You spent <b>${Math.round((1 - endWeek/midWeek) * 100)}% less</b> in the last 3 days compared to earlier this week.`
+      });
+    }
+
+    // Savings trend
+    if (cmpr.savingsChange > 5) {
+      insights.push({
+        icon: '🚀',
+        bg: 'var(--teal-dim)',
+        text: `Your savings are up <b>${cmpr.savingsChange}%</b> compared to last month. Keep it up!`
+      });
+    } else if (cmpr.savingsChange < -5) {
+      insights.push({
+        icon: '⚠️',
+        bg: 'var(--rose-dim)',
+        text: `Your savings dropped <b>${Math.abs(cmpr.savingsChange)}%</b> vs last month. Watch your spending.`
+      });
+    }
+
+    // Goal tracking
+    goals.forEach(g => {
+      if (g.target > 0 && g.current < g.target) {
+        const pct = Math.round((g.current / g.target) * 100);
+        insights.push({
+          icon: g.icon,
+          bg: g.color.replace(')', ',0.10)') || 'var(--teal-dim)',
+          text: `<b>${g.name}</b>: ${pct}% done. You need ₹${Math.abs(g.target - g.current).toLocaleString('en-IN')} more.`
+        });
+      }
+    });
+
+    return insights.slice(0, 4);
+  },
   hasPwd() {
     return !!localStorage.getItem('fintrack_v1_pwd');
   },
