@@ -6,8 +6,9 @@
 
 'use strict';
 
-const CACHE_VERSION  = 'fintrack-v1.3';
+const CACHE_VERSION  = 'fintrack-v1.4';
 const LOCAL_ASSETS   = [
+  './',
   './index.html',
   './income.html',
   './expenses.html',
@@ -16,6 +17,8 @@ const LOCAL_ASSETS   = [
   './app.js',
   './styles.css',
   './manifest.json',
+  './icon-192.png',
+  './icon-512.png',
 ];
 
 /* ── INSTALL ─────────────────────────────────────────── */

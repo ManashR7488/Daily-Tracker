@@ -2,7 +2,7 @@
   "name": "FinTrack — Finance & Habit Tracker",
   "short_name": "FinTrack",
   "description": "Personal finance tracker and daily meal habit logger",
-  "start_url": "./index.html",
+  "start_url": "./",
   "scope": "./",
   "display": "standalone",
   "display_override": ["standalone", "minimal-ui"],
