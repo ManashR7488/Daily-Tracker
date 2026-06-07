@@ -6,7 +6,7 @@
 
 'use strict';
 
-const CACHE_VERSION  = 'fintrack-v0.1';
+const CACHE_VERSION  = 'fintrack-v0.11';
 const LOCAL_ASSETS   = [
   './',
   './index.html',
@@ -119,10 +119,3 @@ async function networkFirstThenCache(request) {
     return cached || new Response('', { status: 503, statusText: 'Offline' });
   }
 }
-
-/* ── MESSAGE HANDLER (manual cache refresh) ─────────── */
-self.addEventListener('message', event => {
-  if (event.data?.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
-});

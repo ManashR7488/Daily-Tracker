@@ -336,23 +336,28 @@ if ('serviceWorker' in navigator) {
       .then(reg => {
         console.log('[SW] Registered:', reg.scope);
 
-        // Check for updates
+        const banner = document.getElementById('update-banner');
+        const btn = document.getElementById('update-btn');
+        if (!banner || !btn) return;
+
+        const notify = (worker) => {
+          banner.classList.add('show');
+          btn.onclick = () => {
+            worker.postMessage('SKIP_WAITING');
+            banner.classList.remove('show');
+          };
+        };
+
+        // 1. If there's already a worker waiting (from previous visit)
+        if (reg.waiting) notify(reg.waiting);
+
+        // 2. If a worker arrives while page is open
         reg.onupdatefound = () => {
           const installingWorker = reg.installing;
           if (!installingWorker) return;
-
           installingWorker.onstatechange = () => {
             if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
-              // New update available, show the banner
-              const banner = document.getElementById('update-banner');
-              const btn = document.getElementById('update-btn');
-              if (banner && btn) {
-                banner.classList.add('show');
-                btn.onclick = () => {
-                  installingWorker.postMessage('SKIP_WAITING');
-                  banner.classList.remove('show');
-                };
-              }
+              notify(installingWorker);
             }
           };
         };
