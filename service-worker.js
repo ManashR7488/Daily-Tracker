@@ -6,7 +6,7 @@
 
 'use strict';
 
-const CACHE_VERSION  = 'fintrack-v1.4';
+const CACHE_VERSION  = 'fintrack-v0.1';
 const LOCAL_ASSETS   = [
   './',
   './index.html',
@@ -19,6 +19,8 @@ const LOCAL_ASSETS   = [
   './manifest.json',
   './icon-192.png',
   './icon-512.png',
+  './setting.html',
+  './setting.js'
 ];
 
 /* ── INSTALL ─────────────────────────────────────────── */
@@ -52,6 +54,13 @@ self.addEventListener('activate', event => {
       )
       .then(() => self.clients.claim())
   );
+});
+
+/* ── MESSAGE ─────────────────────────────────────────── */
+self.addEventListener('message', event => {
+  if (event.data === 'SKIP_WAITING') {
+    self.skipWaiting();
+  }
 });
 
 /* ── FETCH ───────────────────────────────────────────── */

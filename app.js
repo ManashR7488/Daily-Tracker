@@ -333,7 +333,39 @@ if ('serviceWorker' in navigator) {
     }
 
     navigator.serviceWorker.register('service-worker.js')
-      .then(r  => console.log('[SW] Registered:', r.scope))
+      .then(reg => {
+        console.log('[SW] Registered:', reg.scope);
+
+        // Check for updates
+        reg.onupdatefound = () => {
+          const installingWorker = reg.installing;
+          if (!installingWorker) return;
+
+          installingWorker.onstatechange = () => {
+            if (installingWorker.state === 'installed' && navigator.serviceWorker.controller) {
+              // New update available, show the banner
+              const banner = document.getElementById('update-banner');
+              const btn = document.getElementById('update-btn');
+              if (banner && btn) {
+                banner.classList.add('show');
+                btn.onclick = () => {
+                  installingWorker.postMessage('SKIP_WAITING');
+                  banner.classList.remove('show');
+                };
+              }
+            }
+          };
+        };
+      })
       .catch(e => console.warn('[SW] Registration failed:', e));
+
+    // Listen for the controlling SW to change (meaning skipWaiting was called)
+    let refreshing = false;
+    navigator.serviceWorker.addEventListener('controllerchange', () => {
+      if (!refreshing) {
+        window.location.reload();
+        refreshing = true;
+      }
+    });
   });
 }
